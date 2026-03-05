@@ -1,0 +1,39 @@
+﻿Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 93.0.0 (97.0.0 available)
+  analyzer 10.0.1 (11.0.0 available)
+  flutter_markdown 0.7.7+1 (discontinued replaced by flutter_markdown_plus)
+  matcher 0.12.18 (0.12.19 available)
+  meta 1.17.0 (1.18.1 available)
+  test 1.29.0 (1.30.0 available)
+  test_api 0.7.9 (0.7.10 available)
+  test_core 0.6.15 (0.6.16 available)
+  timezone 0.10.1 (0.11.0 available)
+Got dependencies!
+1 package is discontinued.
+8 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing suryaprakash...                                       
+
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\navigation\app_shell.dart:167:36 - deprecated_member_use
+warning - The value of the local variable 'notificationId' isn't used - lib\core\services\notification_service.dart:36:15 - unused_local_variable
+warning - The value of the local variable 'platformChannelSpecifics' isn't used - lib\core\services\notification_service.dart:58:31 - unused_local_variable
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:135:34 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:158:36 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:283:26 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:327:34 - unnecessary_underscores
+  error - The getter 'title' isn't defined for the type 'JournalEntry' - lib\features\journal\add_edit_journal_screen.dart:32:74 - undefined_getter
+  error - The getter 'tags' isn't defined for the type 'JournalEntry' - lib\features\journal\add_edit_journal_screen.dart:34:73 - undefined_getter
+  error - A value of type 'int?' can't be assigned to a variable of type 'String' - lib\features\journal\add_edit_journal_screen.dart:37:23 - invalid_assignment
+  error - The named parameter 'date' is required, but there's no corresponding argument - lib\features\journal\add_edit_journal_screen.dart:54:21 - missing_required_argument
+  error - The named parameter 'title' isn't defined - lib\features\journal\add_edit_journal_screen.dart:56:9 - undefined_named_parameter
+  error - The argument type 'String' can't be assigned to the parameter type 'int?'.  - lib\features\journal\add_edit_journal_screen.dart:58:15 - argument_type_not_assignable
+  error - The named parameter 'tags' isn't defined - lib\features\journal\add_edit_journal_screen.dart:59:9 - undefined_named_parameter
+  error - The argument type 'int?' can't be assigned to the parameter type 'String'.  - lib\features\journal\journal_screen.dart:121:35 - argument_type_not_assignable
+  error - The getter 'title' isn't defined for the type 'JournalEntry' - lib\features\journal\journal_screen.dart:126:23 - undefined_getter
+  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  - lib\features\journal\journal_screen.dart:131:17 - argument_type_not_assignable
+  error - The getter 'tags' isn't defined for the type 'JournalEntry' - lib\features\journal\journal_screen.dart:139:25 - undefined_getter
+  error - The getter 'tags' isn't defined for the type 'JournalEntry' - lib\features\journal\journal_screen.dart:139:47 - undefined_getter
+  error - The getter 'tags' isn't defined for the type 'JournalEntry' - lib\features\journal\journal_screen.dart:144:35 - undefined_getter
+   info - Unnecessary use of multiple underscores - lib\features\tasks\add_edit_task_screen.dart:177:24 - unnecessary_underscores
+

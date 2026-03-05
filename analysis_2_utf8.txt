@@ -1,0 +1,50 @@
+﻿Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 93.0.0 (97.0.0 available)
+  analyzer 10.0.1 (11.0.0 available)
+  flutter_markdown 0.7.7+1 (discontinued replaced by flutter_markdown_plus)
+  matcher 0.12.18 (0.12.19 available)
+  meta 1.17.0 (1.18.1 available)
+  test 1.29.0 (1.30.0 available)
+  test_api 0.7.9 (0.7.10 available)
+  test_core 0.6.15 (0.6.16 available)
+  timezone 0.10.1 (0.11.0 available)
+Got dependencies!
+1 package is discontinued.
+8 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing suryaprakash...                                       
+
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\navigation\app_shell.dart:167:36 - deprecated_member_use
+  error - The name 'Notebook' isn't a type, so it can't be used as a type argument - lib\core\providers\note_providers.dart:64:55 - non_type_as_type_argument
+  error - The name 'Notebook' isn't a type, so it can't be used as a type argument - lib\core\providers\note_providers.dart:66:15 - non_type_as_type_argument
+  error - Undefined class 'Notebook' - lib\core\providers\note_providers.dart:75:28 - undefined_class
+  error - Undefined class 'Notebook' - lib\core\providers\note_providers.dart:80:31 - undefined_class
+  error - The name 'Notebook' isn't a type, so it can't be used as a type argument - lib\core\providers\note_providers.dart:92:79 - non_type_as_type_argument
+  error - Undefined class 'Notebook' - lib\core\repositories\note_repository.dart:108:31 - undefined_class
+  error - The name 'Notebook' isn't a type, so it can't be used as a type argument - lib\core\repositories\note_repository.dart:113:15 - non_type_as_type_argument
+  error - Undefined name 'Notebook' - lib\core\repositories\note_repository.dart:116:28 - undefined_identifier
+  error - Undefined class 'Notebook' - lib\core\repositories\note_repository.dart:119:31 - undefined_class
+warning - The value of the local variable 'timestamp' isn't used - lib\core\services\backup_service.dart:33:13 - unused_local_variable
+warning - The value of the local variable 'notificationId' isn't used - lib\core\services\notification_service.dart:36:15 - unused_local_variable
+warning - The value of the local variable 'platformChannelSpecifics' isn't used - lib\core\services\notification_service.dart:58:31 - unused_local_variable
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:135:34 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:158:36 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:283:26 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:327:34 - unnecessary_underscores
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\journal\add_edit_journal_screen.dart:128:15 - deprecated_member_use
+  error - The property 'id' can't be unconditionally accessed because the receiver can be 'null' - lib\features\notes\note_editor_screen.dart:111:76 - unchecked_use_of_nullable_value
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\notes\note_editor_screen.dart:118:19 - deprecated_member_use
+  error - The property 'id' can't be unconditionally accessed because the receiver can be 'null' - lib\features\notes\note_editor_screen.dart:127:73 - unchecked_use_of_nullable_value
+  error - The property 'name' can't be unconditionally accessed because the receiver can be 'null' - lib\features\notes\note_editor_screen.dart:127:92 - unchecked_use_of_nullable_value
+  error - Undefined class 'Notebook' - lib\features\notes\notebooks_screen.dart:16:51 - undefined_class
+  error - The method 'Notebook' isn't defined for the type '_NotebooksScreenState' - lib\features\notes\notebooks_screen.dart:41:30 - undefined_method
+  error - Undefined class 'Notebook' - lib\features\notes\notebooks_screen.dart:62:46 - undefined_class
+warning - The value of the local variable 'theme' isn't used - lib\features\notes\notebooks_screen.dart:87:11 - unused_local_variable
+  error - The property 'iconCode' can't be unconditionally accessed because the receiver can be 'null' - lib\features\notes\notes_screen.dart:122:50 - unchecked_use_of_nullable_value
+  error - The property 'colorHex' can't be unconditionally accessed because the receiver can be 'null' - lib\features\notes\notes_screen.dart:122:126 - unchecked_use_of_nullable_value
+  error - The property 'name' can't be unconditionally accessed because the receiver can be 'null' - lib\features\notes\notes_screen.dart:124:41 - unchecked_use_of_nullable_value
+  error - The property 'id' can't be unconditionally accessed because the receiver can be 'null' - lib\features\notes\notes_screen.dart:127:65 - unchecked_use_of_nullable_value
+  error - The property 'id' can't be unconditionally accessed because the receiver can be 'null' - lib\features\notes\notes_screen.dart:129:78 - unchecked_use_of_nullable_value
+   info - Unnecessary use of multiple underscores - lib\features\tasks\add_edit_task_screen.dart:177:24 - unnecessary_underscores
+

@@ -1,0 +1,24 @@
+﻿Analyzing suryaprakash...                                       
+
+warning - The value of the local variable 'timestamp' isn't used - lib\core\services\backup_service.dart:33:13 - unused_local_variable
+warning - The value of the local variable 'notificationId' isn't used - lib\core\services\notification_service.dart:36:15 - unused_local_variable
+warning - The value of the local variable 'platformChannelSpecifics' isn't used - lib\core\services\notification_service.dart:58:31 - unused_local_variable
+warning - The value of the field '_secondaryLight' isn't used - lib\core\theme\app_theme.dart:9:16 - unused_field
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:136:34 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:159:36 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:284:26 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\features\expenses\expenses_screen.dart:328:34 - unnecessary_underscores
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\journal\add_edit_journal_screen.dart:128:15 - deprecated_member_use
+   info - Unnecessary use of multiple underscores - lib\features\tasks\add_edit_task_screen.dart:177:24 - unnecessary_underscores
+
+flutter : 10 issues found. (ran in 5.2s)
+At line:1 char:1
++ flutter analyze 2>&1 | Out-File -FilePath 
+full_analysis.txt -Encoding ...
++ ~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: 
+(10     issues found. (ran in 5.2s):String) 
+[], Re    moteException
+    + FullyQualifiedErrorId : 
+NativeCommandErro    r
+ 
