@@ -64,7 +64,7 @@ jobs:
         shell: bash
         run: |
           cd "$APP_DIR"
-          flutter build ios --release --no-codesign
+          flutter build ios --release --no-codesign --no-tree-shake-icons
 
       - name: Package unsigned IPA
         shell: bash
