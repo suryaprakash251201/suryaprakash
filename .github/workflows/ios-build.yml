@@ -37,35 +37,46 @@ jobs:
           cache: true
 
       - name: Install dependencies
-        run: flutter pub get
-        working-directory: ${{ env.APP_DIR }}
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          flutter pub get
 
       - name: Flutter doctor
-        run: flutter doctor -v || true
-        working-directory: ${{ env.APP_DIR }}
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          flutter doctor -v || true
 
       - name: Build iOS App (No Sign)
-        run: flutter build ios --release --no-codesign
-        working-directory: ${{ env.APP_DIR }}
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          flutter build ios --release --no-codesign
 
       - name: Package unsigned IPA
+        shell: bash
         run: |
+          cd "$APP_DIR"
           mkdir -p build/ios/ipa/Payload
           cp -R build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
           cd build/ios/ipa
           /usr/bin/zip -r -y Runner-unsigned.ipa Payload
-        working-directory: ${{ env.APP_DIR }}
 
       - name: Upload unsigned IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-unsigned-ipa
-          path: ${{ env.APP_DIR }}/build/ios/ipa/Runner-unsigned.ipa
+          path: |
+            build/ios/ipa/Runner-unsigned.ipa
+            suryaprakash/build/ios/ipa/Runner-unsigned.ipa
           if-no-files-found: error
 
       - name: Upload iOS app bundle artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-runner-app
-          path: ${{ env.APP_DIR }}/build/ios/iphoneos/Runner.app
+          path: |
+            build/ios/iphoneos/Runner.app
+            suryaprakash/build/ios/iphoneos/Runner.app
           if-no-files-found: warn

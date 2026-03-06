@@ -47,35 +47,49 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Ensure Gradle wrapper is executable
-        run: chmod +x android/gradlew
-        working-directory: ${{ env.APP_DIR }}
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          chmod +x android/gradlew
 
       - name: Install dependencies
-        run: flutter pub get
-        working-directory: ${{ env.APP_DIR }}
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          flutter pub get
 
       - name: Flutter doctor
-        run: flutter doctor -v || true
-        working-directory: ${{ env.APP_DIR }}
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          flutter doctor -v || true
 
       - name: Build APK
-        run: flutter build apk --release
-        working-directory: ${{ env.APP_DIR }}
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          flutter build apk --release
 
       - name: Build AppBundle
-        run: flutter build appbundle --release
-        working-directory: ${{ env.APP_DIR }}
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          flutter build appbundle --release
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-release-apk
-          path: ${{ env.APP_DIR }}/build/app/outputs/flutter-apk/app-release.apk
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            suryaprakash/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
 
       - name: Upload AppBundle artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-release-bundle
-          path: ${{ env.APP_DIR }}/build/app/outputs/bundle/release/app-release.aab
+          path: |
+            build/app/outputs/bundle/release/app-release.aab
+            suryaprakash/build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
