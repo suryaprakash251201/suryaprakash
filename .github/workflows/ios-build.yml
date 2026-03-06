@@ -56,7 +56,9 @@ jobs:
           echo 'CODE_SIGNING_REQUIRED=NO' >> ios/Flutter/Release.xcconfig
           echo 'CODE_SIGN_IDENTITY=' >> ios/Flutter/Release.xcconfig
           echo 'EXPANDED_CODE_SIGN_IDENTITY=' >> ios/Flutter/Release.xcconfig
+          echo 'DEVELOPMENT_TEAM=XXXXXXXXXX' >> ios/Flutter/Release.xcconfig
           sed -i '' '/CODE_SIGN_STYLE/d' ios/Runner.xcodeproj/project.pbxproj
+          perl -i -0pe 's/(buildSettings\s*=\s*\{)/$1\n\t\t\t\tDEVELOPMENT_TEAM = XXXXXXXXXX;/g' ios/Runner.xcodeproj/project.pbxproj
 
       - name: Build iOS App (No Sign)
         shell: bash
