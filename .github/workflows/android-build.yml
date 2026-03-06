@@ -68,13 +68,13 @@ jobs:
         shell: bash
         run: |
           cd "$APP_DIR"
-          flutter build apk --release
+          flutter build apk --release --no-tree-shake-icons
 
       - name: Build AppBundle
         shell: bash
         run: |
           cd "$APP_DIR"
-          flutter build appbundle --release
+          flutter build appbundle --release --no-tree-shake-icons
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
