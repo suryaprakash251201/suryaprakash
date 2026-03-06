@@ -61,15 +61,15 @@ jobs:
         shell: bash
         run: |
           cd "$APP_DIR"
-          flutter build ios --release --no-codesign
+          flutter build ipa --release --no-codesign
 
       - name: Package unsigned IPA
         shell: bash
         run: |
           cd "$APP_DIR"
-          mkdir -p build/ios/ipa/Payload
-          cp -R build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
-          cd build/ios/ipa
+          mkdir -p build/ios/ipa_unsigned/Payload
+          cp -R build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app build/ios/ipa_unsigned/Payload/
+          cd build/ios/ipa_unsigned
           /usr/bin/zip -r -y Runner-unsigned.ipa Payload
 
       - name: Upload unsigned IPA artifact
@@ -77,8 +77,8 @@ jobs:
         with:
           name: ios-unsigned-ipa
           path: |
-            build/ios/ipa/Runner-unsigned.ipa
-            suryaprakash/build/ios/ipa/Runner-unsigned.ipa
+            build/ios/ipa_unsigned/Runner-unsigned.ipa
+            suryaprakash/build/ios/ipa_unsigned/Runner-unsigned.ipa
           if-no-files-found: error
 
       - name: Upload iOS app bundle artifact
@@ -86,6 +86,6 @@ jobs:
         with:
           name: ios-runner-app
           path: |
-            build/ios/iphoneos/Runner.app
-            suryaprakash/build/ios/iphoneos/Runner.app
+            build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app
+            suryaprakash/build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app
           if-no-files-found: warn
