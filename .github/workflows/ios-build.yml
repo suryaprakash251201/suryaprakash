@@ -41,7 +41,7 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
 
       - name: Flutter doctor
-        run: flutter doctor -v
+        run: flutter doctor -v || true
         working-directory: ${{ env.APP_DIR }}
 
       - name: Build iOS App (No Sign)

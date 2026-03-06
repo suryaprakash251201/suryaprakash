@@ -43,6 +43,9 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Ensure Gradle wrapper is executable
         run: chmod +x android/gradlew
         working-directory: ${{ env.APP_DIR }}
@@ -52,7 +55,7 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
 
       - name: Flutter doctor
-        run: flutter doctor -v
+        run: flutter doctor -v || true
         working-directory: ${{ env.APP_DIR }}
 
       - name: Build APK
