@@ -11,21 +11,42 @@ jobs:
   build:
     name: Build Unsigned iOS IPA
     runs-on: macos-latest
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Detect Flutter app directory
+        shell: bash
+        run: |
+          if [ -f pubspec.yaml ] && [ -d ios ]; then
+            echo "APP_DIR=." >> "$GITHUB_ENV"
+          elif [ -f suryaprakash/pubspec.yaml ] && [ -d suryaprakash/ios ]; then
+            echo "APP_DIR=suryaprakash" >> "$GITHUB_ENV"
+          else
+            echo "Flutter app directory not found." >&2
+            ls -la
+            exit 1
+          fi
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
 
       - name: Install dependencies
         run: flutter pub get
+        working-directory: ${{ env.APP_DIR }}
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+        working-directory: ${{ env.APP_DIR }}
 
       - name: Build iOS App (No Sign)
         run: flutter build ios --release --no-codesign
+        working-directory: ${{ env.APP_DIR }}
 
       - name: Package unsigned IPA
         run: |
@@ -33,17 +54,18 @@ jobs:
           cp -R build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
           cd build/ios/ipa
           /usr/bin/zip -r -y Runner-unsigned.ipa Payload
+        working-directory: ${{ env.APP_DIR }}
 
       - name: Upload unsigned IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-unsigned-ipa
-          path: build/ios/ipa/Runner-unsigned.ipa
+          path: ${{ env.APP_DIR }}/build/ios/ipa/Runner-unsigned.ipa
           if-no-files-found: error
 
       - name: Upload iOS app bundle artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-runner-app
-          path: build/ios/iphoneos/Runner.app
+          path: ${{ env.APP_DIR }}/build/ios/iphoneos/Runner.app
           if-no-files-found: warn

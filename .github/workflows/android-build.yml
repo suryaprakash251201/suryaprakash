@@ -17,6 +17,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Detect Flutter app directory
+        shell: bash
+        run: |
+          if [ -f pubspec.yaml ] && [ -d android ]; then
+            echo "APP_DIR=." >> "$GITHUB_ENV"
+          elif [ -f suryaprakash/pubspec.yaml ] && [ -d suryaprakash/android ]; then
+            echo "APP_DIR=suryaprakash" >> "$GITHUB_ENV"
+          else
+            echo "Flutter app directory not found." >&2
+            ls -la
+            exit 1
+          fi
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -32,29 +45,34 @@ jobs:
 
       - name: Ensure Gradle wrapper is executable
         run: chmod +x android/gradlew
+        working-directory: ${{ env.APP_DIR }}
 
       - name: Install dependencies
         run: flutter pub get
+        working-directory: ${{ env.APP_DIR }}
 
       - name: Flutter doctor
         run: flutter doctor -v
+        working-directory: ${{ env.APP_DIR }}
 
       - name: Build APK
         run: flutter build apk --release
+        working-directory: ${{ env.APP_DIR }}
 
       - name: Build AppBundle
         run: flutter build appbundle --release
+        working-directory: ${{ env.APP_DIR }}
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: ${{ env.APP_DIR }}/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
 
       - name: Upload AppBundle artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-release-bundle
-          path: build/app/outputs/bundle/release/app-release.aab
+          path: ${{ env.APP_DIR }}/build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
