@@ -52,15 +52,15 @@ jobs:
         shell: bash
         run: |
           cd "$APP_DIR"
-          # Strip any existing code-sign identity so Xcode doesn't demand a team
-          sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer"/CODE_SIGN_IDENTITY = ""/g' ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/"CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]" = "iPhone Developer"/"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = ""/g' ios/Runner.xcodeproj/project.pbxproj
-          # Inject signing-override keys into every XCBuildConfiguration block
-          sed -i '' '/CODE_SIGN_STYLE/d' ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' '/buildSettings = {/a\
-				CODE_SIGNING_REQUIRED = NO;\
-				CODE_SIGNING_ALLOWED = NO;\
-' ios/Runner.xcodeproj/project.pbxproj
+          PBXPROJ="ios/Runner.xcodeproj/project.pbxproj"
+          # Blank out code-sign identity everywhere
+          sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer"/CODE_SIGN_IDENTITY = ""/g' "$PBXPROJ"
+          sed -i '' 's/"CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]" = "iPhone Developer"/"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = ""/g' "$PBXPROJ"
+          # Remove automatic signing style
+          sed -i '' '/CODE_SIGN_STYLE/d' "$PBXPROJ"
+          # Inject CODE_SIGNING_REQUIRED=NO and CODE_SIGNING_ALLOWED=NO into every buildSettings block
+          perl -i -0pe 's/(buildSettings\s*=\s*\{)/$1\n\t\t\t\tCODE_SIGNING_REQUIRED = NO;\n\t\t\t\tCODE_SIGNING_ALLOWED = NO;/g' "$PBXPROJ"
+          echo "Code signing disabled in $PBXPROJ"
 
       - name: Build iOS App (No Sign)
         shell: bash
