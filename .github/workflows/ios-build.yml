@@ -48,6 +48,20 @@ jobs:
           cd "$APP_DIR"
           flutter doctor -v || true
 
+      - name: Disable code signing for CI
+        shell: bash
+        run: |
+          cd "$APP_DIR"
+          # Strip any existing code-sign identity so Xcode doesn't demand a team
+          sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer"/CODE_SIGN_IDENTITY = ""/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/"CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]" = "iPhone Developer"/"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = ""/g' ios/Runner.xcodeproj/project.pbxproj
+          # Inject signing-override keys into every XCBuildConfiguration block
+          sed -i '' '/CODE_SIGN_STYLE/d' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' '/buildSettings = {/a\
+				CODE_SIGNING_REQUIRED = NO;\
+				CODE_SIGNING_ALLOWED = NO;\
+' ios/Runner.xcodeproj/project.pbxproj
+
       - name: Build iOS App (No Sign)
         shell: bash
         run: |
