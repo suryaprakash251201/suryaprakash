@@ -3,6 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'dart:io';
+import 'dart:typed_data';
 
 import '../../core/models/models.dart';
 import '../../core/providers/expense_providers.dart';
@@ -88,7 +95,14 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      TextButton(onPressed: () {}, child: const Text('See All')),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const AllTransactionsScreen(),
+                          ),
+                        ),
+                        child: const Text('See All'),
+                      ),
                     ],
                   ),
                 ],
@@ -873,6 +887,413 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
     if (hex.length == 6) hex = 'FF$hex';
     if (hex.length != 8) return Colors.grey;
     return Color(int.parse(hex, radix: 16));
+  }
+}
+
+enum _DayFilterRange { today, twoDays, fiveDays, tenDays }
+
+enum _TransactionTypeFilter { all, income, expense }
+
+class AllTransactionsScreen extends ConsumerStatefulWidget {
+  const AllTransactionsScreen({super.key});
+
+  @override
+  ConsumerState<AllTransactionsScreen> createState() => _AllTransactionsScreenState();
+}
+
+class _AllTransactionsScreenState extends ConsumerState<AllTransactionsScreen> {
+  _DayFilterRange _selectedRange = _DayFilterRange.today;
+  _TransactionTypeFilter _selectedType = _TransactionTypeFilter.all;
+
+  List<Transaction> _applyFilters(List<Transaction> transactions) {
+    final now = DateTime.now();
+    final startDate = _startDateForRange(now);
+    final filteredByRange = transactions
+        .where((t) =>
+            !t.date.isBefore(startDate) &&
+            !t.date.isAfter(DateTime(now.year, now.month, now.day, 23, 59, 59)))
+        .toList();
+
+    return filteredByRange.where((t) {
+      switch (_selectedType) {
+        case _TransactionTypeFilter.all:
+          return true;
+        case _TransactionTypeFilter.income:
+          return t.isIncome;
+        case _TransactionTypeFilter.expense:
+          return !t.isIncome;
+      }
+    }).toList();
+  }
+
+  Future<void> _showPrintOptions() async {
+    final txAsync = ref.read(transactionListProvider);
+    final categoriesAsync = ref.read(categoryListProvider);
+    final transactions = txAsync.value;
+    final categories = categoriesAsync.value;
+
+    if (transactions == null || categories == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please wait, transactions are still loading.')),
+      );
+      return;
+    }
+
+    final filtered = _applyFilters(transactions);
+    if (filtered.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No transactions available for selected filters.')),
+      );
+      return;
+    }
+
+    final categoryMap = {for (final c in categories) c.id: c.name};
+    final bytes = await _buildFilteredTransactionsPdf(filtered, categoryMap);
+    if (!mounted) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.print),
+              title: const Text('Print Filtered View'),
+              subtitle: const Text('Open print dialog for current filter results'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await Printing.layoutPdf(onLayout: (_) async => bytes);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf),
+              title: const Text('Export PDF'),
+              subtitle: const Text('Save filtered transactions as a PDF file'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                final savedPath = await _savePdfToFile(bytes);
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      savedPath == null
+                          ? 'Failed to export PDF.'
+                          : 'PDF exported: ${p.basename(savedPath)}',
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('Share PDF'),
+              subtitle: const Text('Share current filtered report as PDF'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await Printing.sharePdf(
+                  bytes: bytes,
+                  filename: 'transactions_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf',
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<Uint8List> _buildFilteredTransactionsPdf(
+    List<Transaction> filtered,
+    Map<String, String> categoryMap,
+  ) async {
+    final doc = pw.Document();
+    final now = DateTime.now();
+    final totalIncome = filtered
+        .where((t) => t.isIncome)
+        .fold<double>(0, (sum, t) => sum + t.amount);
+    final totalExpense = filtered
+        .where((t) => !t.isIncome)
+        .fold<double>(0, (sum, t) => sum + t.amount);
+
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        build: (context) => [
+          pw.Text(
+            'Filtered Transactions Report',
+            style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 6),
+          pw.Text('Generated: ${DateFormat('dd MMM yyyy, hh:mm a').format(now)}'),
+          pw.Text('Range: ${_rangeLabel(_selectedRange)}'),
+          pw.Text('Type: ${_typeLabel(_selectedType)}'),
+          pw.SizedBox(height: 10),
+          pw.Text('Transactions: ${filtered.length}'),
+          pw.Text('Total Income: ${formatRupee(totalIncome)}'),
+          pw.Text('Total Expense: ${formatRupee(totalExpense)}'),
+          pw.SizedBox(height: 12),
+          pw.TableHelper.fromTextArray(
+            headers: const ['Date', 'Category', 'Type', 'Amount', 'Note'],
+            cellAlignment: pw.Alignment.centerLeft,
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            data: filtered
+                .map(
+                  (t) => [
+                    DateFormat('dd MMM yyyy').format(t.date),
+                    categoryMap[t.categoryId] ?? t.categoryId,
+                    t.isIncome ? 'Income' : 'Expense',
+                    '${t.isIncome ? '+' : '-'}${formatRupee(t.amount)}',
+                    t.note ?? '',
+                  ],
+                )
+                .toList(),
+          ),
+        ],
+      ),
+    );
+
+    return await doc.save();
+  }
+
+  Future<String?> _savePdfToFile(Uint8List bytes) async {
+    try {
+      final baseDir = await getApplicationDocumentsDirectory();
+      final folder = Directory(p.join(baseDir.path, 'Suryaprakash_Backups'));
+      if (!await folder.exists()) {
+        await folder.create(recursive: true);
+      }
+
+      final path = p.join(
+        folder.path,
+        'transactions_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf',
+      );
+      final file = File(path);
+      await file.writeAsBytes(bytes, flush: true);
+      return path;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  DateTime _startDateForRange(DateTime now) {
+    final todayStart = DateTime(now.year, now.month, now.day);
+    switch (_selectedRange) {
+      case _DayFilterRange.today:
+        return todayStart;
+      case _DayFilterRange.twoDays:
+        return todayStart.subtract(const Duration(days: 1));
+      case _DayFilterRange.fiveDays:
+        return todayStart.subtract(const Duration(days: 4));
+      case _DayFilterRange.tenDays:
+        return todayStart.subtract(const Duration(days: 9));
+    }
+  }
+
+  String _rangeLabel(_DayFilterRange range) {
+    switch (range) {
+      case _DayFilterRange.today:
+        return 'Today';
+      case _DayFilterRange.twoDays:
+        return '2 Days';
+      case _DayFilterRange.fiveDays:
+        return '5 Days';
+      case _DayFilterRange.tenDays:
+        return '10 Days';
+    }
+  }
+
+  String _typeLabel(_TransactionTypeFilter type) {
+    switch (type) {
+      case _TransactionTypeFilter.all:
+        return 'All';
+      case _TransactionTypeFilter.income:
+        return 'Income';
+      case _TransactionTypeFilter.expense:
+        return 'Expense';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final transactionsAsync = ref.watch(transactionListProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('All Transactions'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.print),
+            tooltip: 'Print / Export PDF',
+            onPressed: _showPrintOptions,
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: 'Add Transaction',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const AddEditTransactionScreen(),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _DayFilterRange.values.map((range) {
+                  final selected = _selectedRange == range;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(_rangeLabel(range)),
+                      selected: selected,
+                      onSelected: (_) => setState(() => _selectedRange = range),
+                      selectedColor: theme.colorScheme.primaryContainer,
+                      backgroundColor: isDark
+                          ? const Color(0xFF1A1A1A)
+                          : theme.colorScheme.surfaceContainer,
+                      side: BorderSide.none,
+                      labelStyle: TextStyle(
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                        color: selected
+                            ? theme.colorScheme.onPrimaryContainer
+                            : theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _TransactionTypeFilter.values.map((type) {
+                  final selected = _selectedType == type;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(_typeLabel(type)),
+                      selected: selected,
+                      onSelected: (_) => setState(() => _selectedType = type),
+                      selectedColor: theme.colorScheme.tertiaryContainer,
+                      backgroundColor: isDark
+                          ? const Color(0xFF1A1A1A)
+                          : theme.colorScheme.surfaceContainer,
+                      side: BorderSide.none,
+                      labelStyle: TextStyle(
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                        color: selected
+                            ? theme.colorScheme.onTertiaryContainer
+                            : theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          transactionsAsync.when(
+            data: (transactions) {
+              final filtered = _applyFilters(transactions);
+
+              final filteredExpense = filtered
+                  .where((t) => !t.isIncome)
+                  .fold<double>(0, (sum, t) => sum + t.amount);
+              final filteredIncome = filtered
+                  .where((t) => t.isIncome)
+                  .fold<double>(0, (sum, t) => sum + t.amount);
+
+              return Expanded(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${_rangeLabel(_selectedRange)} • ${_typeLabel(_selectedType)}: ${filtered.length} transactions  |  +${formatRupee(filteredIncome)}  -${formatRupee(filteredExpense)}',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (filtered.isEmpty)
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'No ${_typeLabel(_selectedType).toLowerCase()} transactions for ${_rangeLabel(_selectedRange).toLowerCase()}',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      Expanded(
+                        child: ListView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) {
+                            final transaction = filtered[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Consumer(
+                                builder: (context, ref, _) {
+                                  final categoryAsync = ref.watch(
+                                    categoryProvider(transaction.categoryId),
+                                  );
+                                  return categoryAsync.when(
+                                    data: (category) => _TransactionTile(
+                                      transaction: transaction,
+                                      category: category,
+                                      isDark: isDark,
+                                      theme: theme,
+                                    ),
+                                    loading: () => const SizedBox(height: 72),
+                                    error: (_, __) => const SizedBox(height: 72),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+            loading: () => const Expanded(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (e, _) => Expanded(
+              child: Center(child: Text('Error: $e')),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

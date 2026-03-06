@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build iOS App
+    name: Build Unsigned iOS IPA
     runs-on: macos-latest
 
     steps:
@@ -27,8 +27,23 @@ jobs:
       - name: Build iOS App (No Sign)
         run: flutter build ios --release --no-codesign
 
-      - name: Upload iOS payload artifact
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p build/ios/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
+          cd build/ios/ipa
+          /usr/bin/zip -r -y Runner-unsigned.ipa Payload
+
+      - name: Upload unsigned IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-release-app
+          name: ios-unsigned-ipa
+          path: build/ios/ipa/Runner-unsigned.ipa
+          if-no-files-found: error
+
+      - name: Upload iOS app bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-runner-app
           path: build/ios/iphoneos/Runner.app
+          if-no-files-found: warn
