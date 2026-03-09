@@ -6,8 +6,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
-import 'core/navigation/app_shell.dart';
-
+import 'features/splash/splash_screen.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -32,7 +31,7 @@ class SuryaprakashApp extends ConsumerWidget {
       title: 'Suryaprakash',
       debugShowCheckedModeBanner: false,
       theme: themeData,
-      home: const AppShell(),
+      home: const SplashScreen(),
     );
   }
 }
